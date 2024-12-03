@@ -6,8 +6,7 @@ editor_options:
 
 ## Yelp Reviews - Topic Modelling Trial
 
-This project exists to trial topic modelling on a small set of reviews
-for restaurants on Yelp.
+This project exists to trial topic modelling on a small set of reviews for restaurants on Yelp. To get started, use the "Modified_cleaned_ReviewsIncludingDates.csv" dataset and find the code in the "Code.R" file.
 
 ## Setup
 
