@@ -2,8 +2,10 @@
 # STEP 1: Set Directories and Import Libraries 
 #-----------------
 
-#install.packages("stm", dependencies = TRUE)
-#install.packages("textmineR")
+install.packages("stm", dependencies = TRUE)
+install.packages("textmineR")
+
+
 library(stm)
 library(textmineR)
 library(ggplot2)
@@ -127,8 +129,8 @@ sample_texts <- as.character(sample_texts)
 # Write the output to a text file
 writeLines(sample_texts, "sample_texts.txt")
 
-# Generate a word cloud for a topic
-cloud(topic_model, topic = 1)
+# Generate a word cloud for a topic if needed
+#cloud(topic_model, topic = 1)
 
 #-----------------
 # STEP 5. Create Cohen's Kappa Export for Manual Coders
@@ -154,7 +156,7 @@ sampled_indices <- sample(1:nrow(kappa_matrix), 300, replace = FALSE)
 kappa_matrix_export <- kappa_matrix[sampled_indices, ]
 
 #Export to CSV
-write.csv(kappa_matrix_export, "kappa_matrix_export.csv", sep = ";" ,row.names = FALSE)
+write.csv(kappa_matrix_export, "kappa_matrix_export.csv", row.names = FALSE)
 
 #-----------------
 # STEP 6. Descriptive Statistics
@@ -165,7 +167,7 @@ write.csv(kappa_matrix_export, "kappa_matrix_export.csv", sep = ";" ,row.names =
 ---------------------------------
   
 # Identify indices of documents classified as belonging to Topic 1
-topic_one_indices <- which(meta$binary_is_t1 == 1)
+topic_one_indices <- which(kappa_matrix$binary_is_t1 == 1)
 
 # Randomly select three indices from those classified as belonging to Topic 1
 random_three_indices <- sample(topic_one_indices, min(3, length(topic_one_indices)), replace = FALSE)
@@ -180,8 +182,8 @@ print(random_three_reviews_topic_one)
   ## 6.2 Percentage Distribution of Star Ratings for Topic 1
 ---------------------------------
   
-# Filter `meta` for reviews classified as belonging to Topic 1
-topic1_reviews <- meta[meta$is_t1_binary == 1,]
+# Filter `model_df` for reviews classified as belonging to Topic 1
+topic1_reviews <- model_df[topic_one_indices, ]
 
 # Ensure all rating levels are included, even if some are absent in the filtered data
 rating_levels <- 1:5
@@ -247,19 +249,16 @@ length_df <- as.data.frame(length_percentage)
 names(length_df) <- c("LengthCategory", "Percentage")
 length_df$LengthCategory <- factor(length_df$LengthCategory, levels = c("Short", "Medium", "Long"))
 
-# Plotting with specified fill colors using scale_fill_manual
-library(ggplot2)
-
 ggplot(length_df, aes(x = LengthCategory, y = Percentage, fill = LengthCategory)) +
-  geom_bar(stat = "identity") +
-  scale_fill_manual(values = c("Short" = "lightblue", "Medium" = "steelblue", "Long" = "darkblue")) +
-  labs(title = "Distribution of Review Lengths for Service Quality Reviews",
-       x = "Review Length Category",
-       y = "Percentage of Reviews (%)") +
-  theme_minimal() +
-  theme(legend.position = "none") +  # This removes the legend
-  geom_text(aes(label = sprintf("%.1f%%", Percentage), 
-                y = ifelse(Percentage > 0, Percentage + 2, 1)), size = 4.5, vjust = 0)
+                      geom_bar(stat = "identity") +
+                      scale_fill_manual(values = c("Short" = "lightblue", "Medium" = "steelblue", "Long" = "darkblue")) +
+                      labs(title = "Distribution of Review Lengths for Service Quality Reviews",
+                           x = "Review Length Category",
+                           y = "Percentage of Reviews (%)") +
+                      theme_minimal() +
+                      theme(legend.position = "none") +  # This removes the legend
+                      geom_text(aes(label = sprintf("%.1f%%", Percentage), 
+                                    y = ifelse(Percentage > 0, Percentage + 2, 1)), size = 4.5, vjust = 0)
 
 
 -----------------------------------------
@@ -267,33 +266,6 @@ ggplot(length_df, aes(x = LengthCategory, y = Percentage, fill = LengthCategory)
 ------------------------------------------
 
 ### 6.5.1 In Percentage Distribution ###
-
-# Aggregate Total and Topic 1 Reviews by Year
-total_reviews_by_year <- aggregate(x = list(TotalCount = meta$review_date), 
-                                   by = list(Year = meta$year), 
-                                   FUN = length)
-
-topic1_reviews_by_year <- aggregate(x = list(Topic1Count = topic1_reviews_up_to_2023$review_date), 
-                                    by = list(Year = topic1_reviews_up_to_2023$year), 
-                                    FUN = length)
-
-# Merge Dataframes on Year and Calculate Percentages
-merged_yearly_data <- merge(total_reviews_by_year, topic1_reviews_by_year, by = "Year")
-merged_yearly_data$Percentage <- (merged_yearly_data$Topic1Count / merged_yearly_data$TotalCount) * 100
-
-# Ensure Year is treated as a numerical value for proper line plotting
-merged_yearly_data$Year <- as.numeric(as.character(merged_yearly_data$Year))
-
-# Plot the Percentage Trend with a Line
-ggplot(merged_yearly_data, aes(x = Year, y = Percentage)) +
-  geom_line(color = "steelblue", size = 1) + 
-  geom_point(color = "lightblue", size = 3) +
-  theme_minimal() +
-  labs(title = "Distribution of Service Quality Reviews over Time",
-       x = "Year", 
-       y = "Total Reviews in Time Period (%)") +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 10))
-
 
 ### Expected Topic Proportion over Time ###
 
