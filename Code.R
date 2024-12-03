@@ -47,7 +47,11 @@ df$is_weekday <- as.integer(!weekdays(as.Date(df$review_date)) %in% c("Saturday"
 df$is_weekend<- as.integer(!df$is_weekday)
 
 #Drop Unused Variables
-df <- subset(df, select = -c(name_business, url, recommended, username, reviewer_location))
+df <- subset(df, select = -c(name_business, 
+                             url, 
+                             recommended, 
+                             username, 
+                             reviewer_location))
 
 ---------------------------------
   ## 2.1 Export Cleaned Dataset For Submission 
@@ -60,9 +64,12 @@ write.csv(df, "cleaned_dataset.csv", row.names = FALSE)
 #-----------------
 
 #Preprocess the raw text data
-processed_text <- textProcessor(df$review_text, metadata = df) 
+processed_text <- textProcessor(df$review_text, 
+                                metadata = df) 
 #Organize pre-processed data for format suitable for stm
-processed_text <- prepDocuments(processed_text$documents, processed_text$vocab, processed_text$meta)
+processed_text <- prepDocuments(processed_text$documents, 
+                                processed_text$vocab, 
+                                processed_text$meta)
 
 #Store documents, vocabulary and metadata in separate lists/data elements
 docs <- processed_text$documents
@@ -102,7 +109,10 @@ writeLines(html_table, "topic_prevalence.html") #Export as html table
 summary(topic_model)
 
 # Finding Document-Topic Probabilities (Graphic Topic Prevalence)
-topic_hist <- plot(topic_model, type = "hist", xlim = c(0, 0.8), ylim = c(0, 900))
+topic_hist <- plot(topic_model, 
+                   type = "hist", 
+                   xlim = c(0, 0.8), 
+                   ylim = c(0, 900))
 
 # Finding Overview of Words in Topics
 topic_labels <- plot(topic_model, type = "labels") 
@@ -111,6 +121,7 @@ topic_labels <- plot(topic_model, type = "labels")
 sample_texts <- findThoughts(topic_model, 
                              texts = meta$review_text, 
                              n = 5)
+
 sample_texts <- as.character(sample_texts)
 
 # Write the output to a text file
@@ -119,14 +130,19 @@ writeLines(sample_texts, "sample_texts.txt")
 # Generate a word cloud for a topic
 cloud(topic_model, topic = 1)
 
-
 #-----------------
 # STEP 5. Create Cohen's Kappa Export for Manual Coders
 #-----------------
 #Create a dataframe with review text and document-topic probability of each document
 model_df <- make.dt(topic_model, meta)
 
-kappa_matrix <- model_df[,c("review_text", "Topic1","Topic2", "Topic3", "Topic4", "Topic5", "Topic6", "Topic7", "Topic8", "Topic9", "Topic10", "Topic11", "Topic12")]
+kappa_matrix <- model_df[, c("review_text", 
+                             "Topic1","Topic2", 
+                             "Topic3", "Topic4", 
+                             "Topic5", "Topic6", 
+                             "Topic7", "Topic8", 
+                             "Topic9", "Topic10", 
+                             "Topic11", "Topic12")]
  
 topic_columns <- kappa_matrix[, -1] #Subset columns with topic probabilities
 kappa_matrix$dominant_topic <- max.col(topic_columns) #Find the number of the dominant topic
